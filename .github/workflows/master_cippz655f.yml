@@ -7,19 +7,29 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # assumes your function app code is in root
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'  # Update if your host.json is in a subfolder
 
 jobs:
   deploy:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      # Checkout your code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Azure Function App
+      # Optional: List directory to help debugging
+      - name: Show workspace contents
+        run: Get-ChildItem -Recurse
+
+      # Compress Function App contents into ZIP
+      - name: Zip function app contents
+        run: Compress-Archive -Path ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}\* -DestinationPath functionapp.zip
+
+      # Deploy to Azure Function App
+      - name: Deploy to Azure Function App using publish profile
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'cippz655f'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          package: 'functionapp.zip'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_494A244B7A364DC68B2B022F98F0EA58 }}
